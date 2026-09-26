@@ -1,0 +1,15 @@
+/* Pointer feedback uses individual transform properties, preserving saved transforms. */
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference) {
+  a[data-motion-card] { transition:translate .45s cubic-bezier(.22,1,.36,1),box-shadow .45s ease; }
+  a[data-motion-card]:hover { translate:0 -5px; box-shadow:0 14px 35px rgb(0 0 0 / .07); }
+  a[data-motion-card] img { transition:scale .8s cubic-bezier(.22,1,.36,1); }
+  a[data-motion-card]:hover img { scale:1.025; }
+  header a,.contact-direct a { transition:scale .3s ease,filter .3s ease; }
+  header a:hover,.contact-direct a:hover { scale:1.035;filter:brightness(1.04); }
+  a:active { scale:.98; }
+}
+.skill-disclosure summary { list-style:none;display:flex;align-items:center;justify-content:space-between;gap:16px; }
+.skill-disclosure summary::-webkit-details-marker { display:none; }
+.skill-disclosure summary::after { content:'+';font-size:24px;font-weight:400;transition:rotate .35s ease; }
+.skill-disclosure[open] summary::after { rotate:45deg; }
+@media(prefers-reduced-motion:reduce){a,img,summary::after{transition:none!important;scroll-behavior:auto!important}}
