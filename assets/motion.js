@@ -61,14 +61,20 @@
       gsap.set(current,{x:offsets[0]});
       label.textContent='2021';
       counters.push(()=>label.textContent=original);
-      tl.from(current,{opacity:0,duration:.3});
-      years.forEach((year,index)=>{
-        const at=.35+index*.48;
-        tl.to(year,{opacity:1,duration:.4,ease:'power2.out'},at);
-        tl.to(current,{x:index===4?0:offsets[index+1],duration:.48,ease:'power1.inOut'},at);
-        tl.call(()=>label.textContent=String(2022+index),[],at+.24);
-      });
-      tl.set(current,{clearProps:'transform'},2.8);
+      const progress={value:0};
+      tl.from(current,{opacity:0,duration:.25},0);
+      tl.to(current,{x:0,duration:2.6,ease:'power1.inOut'},0);
+      tl.to(progress,{value:1,duration:2.6,ease:'power1.inOut',onUpdate:()=>{
+        label.textContent=String(Math.min(2026,2021+Math.floor(progress.value*5.999)));
+        const x=offsets[0]*(1-progress.value);
+        years.forEach((year,index)=>{
+          const distance=offsets[index]-x;
+          gsap.set(year,{opacity:Math.max(0,Math.min(1,distance/38))});
+        });
+      }},0);
+      tl.set(years,{opacity:1});
+      tl.set(current,{clearProps:'transform'});
+
     });
     const steps=[];
     let nextStep=0, playingStep=false;
