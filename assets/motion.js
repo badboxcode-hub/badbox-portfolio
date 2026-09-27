@@ -41,6 +41,35 @@
       if(skill) tl.from(card.querySelector('[data-meter-fill]'),{scaleX:0,transformOrigin:'left center',duration:1.1},0);
       else tl.from(card.querySelectorAll('.satisfaction-dots i'),{opacity:0,scale:.4,duration:.45,stagger:{amount:.65},clearProps:'transform,opacity'},0);
     });
+    document.querySelectorAll('[data-framer-name="Timeline"]').forEach(track=>{
+      const current=track.querySelector('[data-framer-name="Current"]');
+      const past=track.querySelector('[data-framer-name="Past"]');
+      if(!current||!past)return;
+      const label=current.querySelector('p');
+      const years=[...past.children].reverse();
+      if(!label||years.length!==5)return;
+      const original=label.textContent;
+      const positions=()=>{
+        const base=current.getBoundingClientRect();
+        const trackRect=track.getBoundingClientRect();
+        return years.map(el=>Math.min(el.getBoundingClientRect().left-base.left,trackRect.right-base.right));
+      };
+      const offsets=positions();
+      const tl=gsap.timeline({scrollTrigger:trigger(track),onStart:()=>track.dataset.yearState='running',
+        onComplete:()=>{label.textContent=original;track.dataset.yearState='settled';}});
+      gsap.set(years,{opacity:0});
+      gsap.set(current,{x:offsets[0]});
+      label.textContent='2021';
+      counters.push(()=>label.textContent=original);
+      tl.from(current,{opacity:0,duration:.3});
+      years.forEach((year,index)=>{
+        const at=.35+index*.48;
+        tl.to(year,{opacity:1,duration:.4,ease:'power2.out'},at);
+        tl.to(current,{x:index===4?0:offsets[index+1],duration:.48,ease:'power1.inOut'},at);
+        tl.call(()=>label.textContent=String(2022+index),[],at+.24);
+      });
+      tl.set(current,{clearProps:'transform'},2.8);
+    });
     const steps=[];
     let nextStep=0, playingStep=false;
     const playNext=()=>{
