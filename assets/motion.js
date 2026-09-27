@@ -10,6 +10,24 @@
   mm.add('(prefers-reduced-motion: no-preference)', () => {
     const counters = [];
     const trigger = el => ({trigger:el,start:'top 90%',once:true});
+    const toolsSection=document.querySelector('#toolkit')?.closest('section');
+    let headerDone=!document.querySelector('[data-process-count="4"]');
+    let stepsDone=!document.querySelector('[data-process-count="04"]');
+    let toolsReleased=false;
+    const waiting=[];
+    if(toolsSection)gsap.set(toolsSection,{autoAlpha:0});
+    const releaseTools=()=>{
+      if(toolsReleased||!headerDone||!stepsDone)return;
+      toolsReleased=true;
+      if(toolsSection)gsap.to(toolsSection,{autoAlpha:1,duration:.35,clearProps:'opacity,visibility'});
+      waiting.splice(0).forEach(animation=>animation.play());
+    };
+    const arm=(el,animation)=>ScrollTrigger.create({...trigger(el),onEnter:()=>{
+      if(toolsSection?.contains(el)&&!toolsReleased)waiting.push(animation);
+      else animation.play();
+    }});
+    releaseTools();
+
     document.querySelectorAll('[data-entrance]').forEach(el => {
       if (innerWidth < 610) return;
       try {
@@ -21,10 +39,11 @@
     });
     document.querySelectorAll('[data-motion]').forEach(el => {
       const letters=el.dataset.motion==='text' ? [...el.querySelectorAll('span')].filter(s=>!s.children.length&&s.style.display==='inline-block') : [];
-      gsap.from(letters.length?letters:el,{opacity:0,y:letters.length?14:24,duration:.8,
-        stagger:letters.length?{amount:.35}:0,ease:'power3.out',scrollTrigger:trigger(el),
+      const reveal=gsap.from(letters.length?letters:el,{paused:true,opacity:0,y:letters.length?14:24,duration:.8,
+        stagger:letters.length?{amount:.35}:0,ease:'power3.out',
         onStart:()=>el.dataset.motionState='running',
         onComplete:()=>el.dataset.motionState='settled',clearProps:'transform,opacity'});
+      arm(el,reveal);
     });
     document.querySelectorAll('[data-satisfaction], [data-skill-meter]').forEach(card => {
       const skill=card.hasAttribute('data-skill-meter');
@@ -34,12 +53,13 @@
       const state={value:0};
       number.textContent='0'+suffix;
       counters.push(()=>number.textContent=target+suffix);
-      const tl=gsap.timeline({scrollTrigger:trigger(card),defaults:{ease:'power3.out'},
+      const tl=gsap.timeline({paused:true,defaults:{ease:'power3.out'},
         onStart:()=>card.dataset.counterState='running',
         onComplete:()=>card.dataset.counterState='settled'});
       tl.to(state,{value:target,duration:1.1,onUpdate:()=>number.textContent=Math.round(state.value)+suffix},0);
       if(skill) tl.from(card.querySelector('[data-meter-fill]'),{scaleX:0,transformOrigin:'left center',duration:1.1},0);
       else tl.from(card.querySelectorAll('.satisfaction-dots i'),{opacity:0,scale:.4,duration:.45,stagger:{amount:.65},clearProps:'transform,opacity'},0);
+      arm(card,tl);
     });
     document.querySelectorAll('[data-framer-name="Timeline"]').forEach(track=>{
       const current=track.querySelector('[data-framer-name="Current"]');
@@ -92,7 +112,7 @@
         const state={value:0};
         count.textContent='0';
         counters.push(()=>count.textContent=final);
-        const tl=gsap.timeline({scrollTrigger:trigger(card)});
+        const tl=gsap.timeline({scrollTrigger:trigger(card),onComplete:()=>{headerDone=true;releaseTools();}});
         tl.to(state,{value:4,duration:1.4,ease:'power1.inOut',onUpdate:()=>count.textContent=Math.round(state.value)},0);
         tl.from(card.querySelectorAll('h3,p'),{opacity:0,y:16,duration:.85,stagger:.15,ease:'power3.out',clearProps:'transform,opacity'},.1);
         return;
@@ -104,11 +124,11 @@
       steps.push(step);
       const tl=gsap.timeline({paused:true,defaults:{duration:.65,ease:'power3.out',clearProps:'transform,opacity'},
         onStart:()=>card.dataset.processState='running',
-        onComplete:()=>{card.dataset.processState='settled';playingStep=false;nextStep++;playNext();}});
+        onComplete:()=>{card.dataset.processState='settled';playingStep=false;nextStep++;if(nextStep===steps.length){stepsDone=true;releaseTools();}playNext();}});
       tl.from(number,{opacity:0,y:12},0)
         .from(heading,{opacity:0,y:16},.22)
         .from(description,{opacity:0,y:16},.44);
-      tl.timeScale(1.5);
+      tl.timeScale(2);
       step.timeline=tl;
       ScrollTrigger.create({trigger:card,start:'top 88%',once:true,onEnter:()=>{step.ready=true;playNext();}});
     });
