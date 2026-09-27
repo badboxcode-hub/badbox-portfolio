@@ -41,6 +41,22 @@
       if(skill) tl.from(card.querySelector('[data-meter-fill]'),{scaleX:0,transformOrigin:'left center',duration:1.1},0);
       else tl.from(card.querySelectorAll('.satisfaction-dots i'),{opacity:0,scale:.4,duration:.45,stagger:{amount:.65},clearProps:'transform,opacity'},0);
     });
+    document.querySelectorAll('[data-process-card]').forEach(card=>{
+      const count=card.querySelector('[data-process-count]');
+      if(!count)return;
+      const final=count.dataset.processCount, state={value:0};
+      const format=value=>String(Math.round(value)).padStart(final.length,'0');
+      count.textContent=format(0);
+      counters.push(()=>count.textContent=final);
+      const tl=gsap.timeline({scrollTrigger:trigger(card)});
+      tl.to(state,{value:Number(final),duration:1.2,ease:'power2.out',onUpdate:()=>count.textContent=format(state.value)},0);
+      const text=[...card.querySelectorAll('p,h3')].filter(el=>el!==count);
+      tl.from(text,{opacity:0,y:16,duration:.85,stagger:.12,ease:'power3.out',clearProps:'transform,opacity'},0);
+    });
+    document.querySelectorAll('[data-portrait-scroll]').forEach(frame=>{
+      gsap.fromTo(frame,{y:10,rotation:-.8},{y:-10,rotation:.8,ease:'none',
+        scrollTrigger:{trigger:frame.parentElement,start:'top bottom',end:'bottom top',scrub:.7}});
+    });
     return () => counters.forEach(settle=>settle());
   });
   document.querySelectorAll('.skill-disclosure').forEach(details => {
