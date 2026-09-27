@@ -54,6 +54,73 @@
     }, {threshold: 0, rootMargin: '0px 0px -24px 0px'});
     document.querySelectorAll('[data-motion]').forEach(el => observer.observe(el));
   }
+  document.querySelectorAll('[data-satisfaction]').forEach(card => {
+    const number = card.querySelector('[data-count-to]');
+    const dots = [...card.querySelectorAll('.satisfaction-dots i')];
+    if (reduced.matches || !('IntersectionObserver' in window)) return;
+    number.textContent = '0';
+    dots.forEach(dot => dot.style.opacity = '0');
+    let frame = 0;
+    const settle = () => {
+      cancelAnimationFrame(frame);
+      number.textContent = '95';
+      dots.forEach(dot => dot.style.opacity = '');
+      card.dataset.counterState = 'settled';
+    };
+    reduced.addEventListener('change', () => { if (reduced.matches) settle(); });
+    const observer = new IntersectionObserver(entries => {
+      if (!entries.some(entry => entry.isIntersecting)) return;
+      observer.disconnect();
+      if (reduced.matches) { settle(); return; }
+      card.dataset.counterState = 'running';
+      dots.forEach((dot, i) => {
+        dot.style.opacity = '';
+        animate(dot, [{opacity:0,transform:'scale(.5)'},{opacity:i<95?1:.3,transform:'scale(1)'}],
+          {duration:420,delay:i*7,easing:ease});
+      });
+      const start = performance.now();
+      const tick = now => {
+        const progress = Math.min((now-start)/1000,1);
+        number.textContent = String(Math.round(95*(1-Math.pow(1-progress,3))));
+        if (progress<1) frame=requestAnimationFrame(tick);
+        else { number.textContent='95'; card.dataset.counterState='settled'; }
+      };
+      frame=requestAnimationFrame(tick);
+    }, {threshold:.25});
+    observer.observe(card);
+  });
+  document.querySelectorAll('[data-skill-meter]').forEach(row => {
+    const number=row.querySelector('[data-meter-number]');
+    const bar=row.querySelector('[data-meter-fill]');
+    const target=Number(row.dataset.skillMeter);
+    if (reduced.matches || !('IntersectionObserver' in window)) return;
+    let frame=0;
+    number.textContent='0%';
+    bar.style.transform='scaleX(0)';
+    const settle=()=>{
+      cancelAnimationFrame(frame);
+      number.textContent=target+'%';
+      bar.style.transform='scaleX(1)';
+      row.dataset.counterState='settled';
+    };
+    reduced.addEventListener('change',()=>{if(reduced.matches)settle();});
+    const observer=new IntersectionObserver(entries=>{
+      if(!entries.some(entry=>entry.isIntersecting))return;
+      observer.disconnect();
+      if(reduced.matches){settle();return;}
+      row.dataset.counterState='running';
+      const start=performance.now();
+      const tick=now=>{
+        const progress=Math.min((now-start)/1100,1);
+        const eased=1-Math.pow(1-progress,3);
+        number.textContent=Math.round(target*eased)+'%';
+        bar.style.transform='scaleX('+eased+')';
+        if(progress<1)frame=requestAnimationFrame(tick);else settle();
+      };
+      frame=requestAnimationFrame(tick);
+    },{threshold:.3});
+    observer.observe(row);
+  });
   // Native details remains the no-JavaScript/reduced-motion fallback.
   document.querySelectorAll('.skill-disclosure').forEach(details => {
     const summary = details.querySelector('summary');

@@ -13,3 +13,10 @@
 .skill-disclosure summary::after { content:'+';font-size:24px;font-weight:400;transition:rotate .35s ease; }
 .skill-disclosure[open] summary::after { rotate:45deg; }
 @media(prefers-reduced-motion:reduce){a,img,summary::after{transition:none!important;scroll-behavior:auto!important}}
+
+.satisfaction-dots{display:grid;grid-template-columns:repeat(20,1fr);gap:5px;width:100%;margin-bottom:6px}
+.satisfaction-dots i{display:block;width:4px;height:4px;border-radius:50%;background:aqua;justify-self:center}
+.satisfaction-dots .dim{opacity:.3}
+[data-count-to]{display:inline-block;min-width:1.12em;font-variant-numeric:tabular-nums}
+
+[data-meter-number]{font-variant-numeric:tabular-nums;min-width:2.4em}
