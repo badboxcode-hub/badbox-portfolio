@@ -108,6 +108,7 @@
       tl.from(number,{opacity:0,y:12},0)
         .from(heading,{opacity:0,y:16},.22)
         .from(description,{opacity:0,y:16},.44);
+      tl.timeScale(1.5);
       step.timeline=tl;
       ScrollTrigger.create({trigger:card,start:'top 88%',once:true,onEnter:()=>{step.ready=true;playNext();}});
     });
