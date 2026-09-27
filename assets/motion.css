@@ -20,3 +20,16 @@
 [data-count-to]{display:inline-block;min-width:1.12em;font-variant-numeric:tabular-nums}
 
 [data-meter-number]{font-variant-numeric:tabular-nums;min-width:2.4em}
+
+.skill-disclosure{padding:0!important;border-radius:0!important;border-top:1px solid #e4e4e4;background:transparent!important}
+.skill-disclosure summary{padding:24px 0;gap:18px;justify-content:flex-start;font-size:22px;line-height:1.35;font-weight:600}
+.skill-disclosure summary::after{display:none}
+.skill-disclosure summary span{flex:1;min-width:0}
+.skill-disclosure .skill-icon{width:24px;height:24px;flex:none;display:block}
+.skill-disclosure p{margin:0!important;padding:0 0 24px;font-size:16px;line-height:1.4;color:#777}
+.skill-toggle{width:18px;height:18px;position:relative;flex:none}
+.skill-toggle::before,.skill-toggle::after{content:"";position:absolute;background:currentColor;left:2px;right:2px;top:8px;height:1.5px}
+.skill-toggle::after{rotate:90deg;transition:rotate .3s ease,opacity .3s ease}
+.skill-disclosure[open] .skill-toggle::after{rotate:0deg;opacity:0}
+.skill-disclosure summary:focus:not(:focus-visible){outline:none}
+@media(max-width:609.98px){.skill-disclosure summary{font-size:20px;gap:14px}}
