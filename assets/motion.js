@@ -28,8 +28,39 @@
     }});
     releaseTools();
 
+    // Reveal project content in small scroll-triggered batches, without changing media crops.
+    const project=document.querySelector('[data-project-content]');
+    const projectTargets=new Set();
+    if(project){
+      const add=el=>{if(el)projectTargets.add(el);};
+      project.querySelectorAll('aside').forEach(add);
+      project.querySelectorAll('[data-framer-name="Text 1"], [data-framer-name="Text 2"], [data-framer-name="Text 3"]').forEach(block=>{
+        [...block.children].forEach(add);
+      });
+      project.querySelectorAll('img,video').forEach(media=>{
+        if(media.closest('aside'))return;
+        add(media.closest('[data-framer-name="Banner"], [data-framer-name="Image"]') || media.parentElement);
+      });
+      const main=project.closest('main');
+      main.querySelectorAll('[data-motion]').forEach(el=>{
+        if(!project.contains(el))add(el);
+      });
+      // A selected parent owns its children; never animate both independently.
+      [...projectTargets].forEach(el=>{
+        if([...projectTargets].some(parent=>parent!==el&&parent.contains(el)))projectTargets.delete(el);
+      });
+      const targets=[...projectTargets].sort((a,b)=>a.compareDocumentPosition(b)&2?1:-1);
+      targets.forEach(el=>el.dataset.projectReveal='pending');
+      gsap.set(targets,{autoAlpha:0,y:24});
+      ScrollTrigger.batch(targets,{start:'top 92%',once:true,interval:.1,batchMax:4,
+        onEnter:batch=>gsap.to(batch,{autoAlpha:1,y:0,duration:.85,stagger:.12,ease:'power3.out',
+          onStart:()=>batch.forEach(el=>el.dataset.projectReveal='running'),
+          onComplete:()=>batch.forEach(el=>el.dataset.projectReveal='settled'),
+          clearProps:'transform,opacity,visibility'})});
+    }
+    const ownedByProject=el=>project && (project.contains(el)||[...projectTargets].some(parent=>parent===el||parent.contains(el)));
     document.querySelectorAll('[data-entrance]').forEach(el => {
-      if (innerWidth < 610) return;
+      if (innerWidth < 610 || ownedByProject(el)) return;
       try {
         const spec=JSON.parse(el.dataset.entrance), start=spec.initial;
         gsap.from(el,{opacity:start.opacity??0,y:start.y||0,x:start.x||0,
@@ -38,6 +69,7 @@
       } catch { /* Static content is the fallback. */ }
     });
     document.querySelectorAll('[data-motion]').forEach(el => {
+      if(ownedByProject(el))return;
       const letters=el.dataset.motion==='text' ? [...el.querySelectorAll('span')].filter(s=>!s.children.length&&s.style.display==='inline-block') : [];
       const reveal=gsap.from(letters.length?letters:el,{paused:true,opacity:0,y:letters.length?14:24,duration:.8,
         stagger:letters.length?{amount:.35}:0,ease:'power3.out',
